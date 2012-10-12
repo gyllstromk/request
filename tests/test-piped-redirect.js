@@ -11,15 +11,18 @@ var portOne = 8968
 // server one
 var s1 = http.createServer(function (req, resp)
 {
-  if (req.url == '/original')
+  var parsed = require('url').parse(req.url);
+  console.log('parsed', req.url, parsed);
+
+  if (parsed.pathname == '/original')
   {
-    resp.writeHeader(302, {'location': '/redirected'})
+    resp.writeHeader(302, {'location': '/redirected' + (parsed.search || '')});
     resp.end()
   }
-  else if (req.url == '/redirected')
+  else if (parsed.pathname == '/redirected')
   {
     resp.writeHeader(200, {'content-type': 'text/plain'})
-    resp.write('OK')
+    resp.write(parsed.query);
     resp.end()
   }
 
@@ -37,9 +40,10 @@ var s2 = http.createServer(function (req, resp)
 }).listen(portTwo, function()
 {
 
-  var r = request('http://localhost:'+portTwo+'/original', function (err, res, body) {
+    var query = 'query_key=queryvalue';
+    var r = request('http://localhost:'+portTwo+'/original?' + query, function (err, res, body) {
 
-    assert.equal(body, 'OK')
+    assert.equal(body, query)
 
     s1.close()
     s2.close()

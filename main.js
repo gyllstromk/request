@@ -338,6 +338,10 @@ Request.prototype.init = function (options) {
       if (!self.headers['content-type'] && !self.headers['Content-Type'])
         self.headers['content-type'] = mime.lookup(src.path)
     } else {
+      if (require('url').parse(src.url).query) {
+          self.qs(require('url').parse(src.url, true).query); // re-parse deeply to get qs as dictionary
+      }
+
       if (src.headers) {
         for (var i in src.headers) {
           if (!self.headers[i]) {
@@ -733,7 +737,8 @@ Request.prototype.setHeaders = function (headers) {
   return this
 }
 Request.prototype.qs = function (q, clobber) {
-  var base
+  var base;
+
   if (!clobber && this.uri.query) base = qs.parse(this.uri.query)
   else base = {}
   
